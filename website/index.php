@@ -1,62 +1,38 @@
 <?php
-require 'db.php';
+// Front Controller
+use App\Core\Autoloader;
+use App\Controllers\GameController;use App\Controllers\ConfigurationController;use App\Controllers\BenchmarkController;use App\Core\Router;
 
-// Proses penambahan data
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['name'])) {
-    $sql = "INSERT INTO users (name) VALUES (?)";
-    $pdo->prepare($sql)->execute([$_POST['name']]);
-    header("Location: index.php"); // Redirect untuk mencegah duplikasi
-    exit;
-}
+session_start();
+require __DIR__ . '/app/Core/Autoloader.php';
+require __DIR__ . '/app/Core/Helpers.php';
+Autoloader::register();
 
-// Proses penghapusan data
-if (isset($_GET['delete'])) {
-    $sql = "DELETE FROM users WHERE id = ?";
-    $pdo->prepare($sql)->execute([$_GET['delete']]);
-    header("Location: index.php");
-    exit;
-}
+// Instantiate controllers (avoid naming collision with $game array in views)
+$gameCtrl = new GameController();
+$confCtrl = new ConfigurationController();
+$benchCtrl = new BenchmarkController();
 
-// Ambil semua data
-$stmt = $pdo->query("SELECT id, name FROM users");
+// Define routes
+$router = new Router();
+// Games
+$router->get('index', fn() => $gameCtrl->index());
+$router->get('create', fn() => $gameCtrl->create());
+$router->get('show', fn() => $gameCtrl->show());
+$router->post('store', fn() => $gameCtrl->store());
+$router->get('edit', fn() => $gameCtrl->edit());
+$router->post('update', fn() => $gameCtrl->update());
+$router->get('delete', fn() => $gameCtrl->delete());
+// Configurations
+$router->post('config_store', fn() => $confCtrl->store());
+$router->get('config_edit', fn() => $confCtrl->edit());
+$router->post('config_update', fn() => $confCtrl->update());
+$router->get('config_delete', fn() => $confCtrl->delete());
+// Benchmarks
+$router->post('bench_store', fn() => $benchCtrl->store());
+$router->get('bench_edit', fn() => $benchCtrl->edit());
+$router->post('bench_update', fn() => $benchCtrl->update());
+$router->get('bench_delete', fn() => $benchCtrl->delete());
+
+$router->dispatch($_GET['action'] ?? 'index');
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Aplikasi CRUD Sederhana</title>
-    <style>
-        body { font-family: sans-serif; container: centered; max-width: 600px; margin: auto; padding-top: 20px;}
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        a { text-decoration: none; color: red; }
-        form { margin-bottom: 20px; }
-    </style>
-</head>
-<body>
-
-<h2>Tambah Pengguna Baru</h2>
-<form action="index.php" method="post">
-    <label for="name">Nama:</label>
-    <input type="text" id="name" name="name" required>
-    <button type="submit">Tambah</button>
-</form>
-
-<h2>Daftar Pengguna</h2>
-<table>
-    <tr>
-        <th>ID</th>
-        <th>Nama</th>
-        <th>Aksi</th>
-    </tr>
-    <?php while ($row = $stmt->fetch()): ?>
-    <tr>
-        <td><?= htmlspecialchars($row['id']) ?></td>
-        <td><?= htmlspecialchars($row['name']) ?></td>
-        <td><a href="index.php?delete=<?= $row['id'] ?>" onclick="return confirm('Yakin ingin menghapus?');">Hapus</a></td>
-    </tr>
-    <?php endwhile; ?>
-</table>
-
-</body>
-</html>
