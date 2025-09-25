@@ -1,0 +1,53 @@
+services:
+  # Layanan untuk Database MariaDB
+  db:
+    image: mariadb:10.6 # Menggunakan image resmi MariaDB
+    container_name: db_mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678 # Ganti dengan password root yang aman
+      MYSQL_DATABASE: crud_db # Nama database yang akan dibuat
+      MYSQL_USER: aquarise # Nama user untuk aplikasi
+      MYSQL_PASSWORD: 12345678 # Ganti dengan password user yang aman
+    volumes:
+      - mariadb_data:/var/lib/mysql # Volume untuk menyimpan data database secara permanen
+    networks:
+      - app-network
+
+  # Layanan untuk Website (PHP + Apache)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: uts-web-app # Beri nama custom untuk image baru kita
+    container_name: web_apache
+    restart: unless-stopped
+    volumes:
+      - ./website:/var/www/html
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime_kuma
+    restart: unless-stopped
+    volumes:
+      - uptime_kuma_data:/app/data
+    ports:
+      - "3001:3001" # Memetakan port 3001 di host ke port 3001 di container
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
+  uptime_kuma_data:
+    driver: local
