@@ -303,4 +303,4 @@ Saat ini minimal (single-user). Untuk produksi multi-user:
 - API JSON ringan untuk integrasi eksternal.
 
 ## 16. Lisensi / Status
-Proyek akademik / pembelajaran. Belum ditetapkan lisensi formal (default all-rights-reserved). Tambahkan LICENSE bila ingin dipublikasikan.
+Proyek akademik / pembelajaran. Belum ditetapkan lisensi formal (default all-rights-reserved). .
